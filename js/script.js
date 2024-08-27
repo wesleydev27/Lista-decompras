@@ -3,6 +3,8 @@ let inputTarefa = document.getElementById('inputTarefa');
 let btnAdicionar = document.getElementById('btnAdicionar');
 let tarefas = document.getElementById('tarefas');
 
+/* CARREGA AS TAREFAS DO LOCALSTORAGE */
+carregarTarefas();
 
 /* ADICIONA EVENTO AO CLIQUE DO BOTÃO ADICIONAR */
 btnAdicionar.addEventListener('click', () => {
@@ -15,36 +17,56 @@ btnAdicionar.addEventListener('click', () => {
             inputTarefa.style.border = "none";
             error.innerHTML = "";
         }, 3000);
-
     } else {
-        let li = document.createElement("li");
-        li.innerHTML = '<i class="fa-solid fa-check" onclick="cheklist(this)"></i>' + inputTarefa.value + '<i class="fa-solid fa-trash" onclick="deletar(this)"></i>';
-        document.querySelector("ul").appendChild(li);
+        adicionarTarefa(inputTarefa.value);
         inputTarefa.value = "";
     }
 });
+
+/* FUNÇÃO PARA ADICIONAR TAREFA */
+function adicionarTarefa(texto) {
+    let li = document.createElement("li");
+    li.innerHTML = '<i class="fa-solid fa-check" onclick="cheklist(this)"></i>' + texto + '<i class="fa-solid fa-trash" onclick="deletar(this)"></i>';
+    document.querySelector("ul").appendChild(li);
+    salvarTarefas();
+}
 
 /* FUNÇÃO CHEKLIST */
 function cheklist(elemento) {
     let li = elemento.parentElement;
     li.style.textDecoration = li.style.textDecoration === "line-through" ? "none" : "line-through";
+    salvarTarefas();
 }
 
 /* FUNÇÃO DELETAR */
 function deletar(elemento) {
     elemento.parentElement.remove();
+    salvarTarefas();
 }
 
+/* FUNÇÃO PARA SALVAR TAREFAS NO LOCALSTORAGE */
+function salvarTarefas() {
+    let tarefas = [];
+    document.querySelectorAll('ul li').forEach(li => {
+        tarefas.push({
+            texto: li.innerText,
+            concluida: li.style.textDecoration === "line-through"
+        });
+    });
+    localStorage.setItem('tarefas', JSON.stringify(tarefas));
+}
 
+/* FUNÇÃO PARA CARREGAR TAREFAS DO LOCALSTORAGE */
 function carregarTarefas() {
-    console.log('Carregando tarefas...');
     let tarefasSalvas = localStorage.getItem('tarefas');
-    console.log('Tarefas salvas:', tarefasSalvas);
     if (tarefasSalvas) {
-        tarefas.innerHTML = tarefasSalvas;
-        console.log('Tarefas carregadas com sucesso');
-    } else {
-        console.log('Nenhuma tarefa encontrada no localStorage');
+        JSON.parse(tarefasSalvas).forEach(tarefa => {
+            let li = document.createElement("li");
+            li.innerHTML = '<i class="fa-solid fa-check" onclick="cheklist(this)"></i>' + tarefa.texto + '<i class="fa-solid fa-trash" onclick="deletar(this)"></i>';
+            if (tarefa.concluida) {
+                li.style.textDecoration = "line-through";
+            }
+            document.querySelector("ul").appendChild(li);
+        });
     }
 }
-
